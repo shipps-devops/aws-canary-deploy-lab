@@ -21,14 +21,26 @@ This project implements a **Platform Engineering** workflow separating Infrastru
 
 ```mermaid
 graph TD;
-    Terraform[Terraform IaC] -->|Provisions Network & Compute| AWS[AWS VPC & EKS Cluster];
-    Terraform -->|Helm Provider| Monitoring[Prometheus & Grafana];
-    User[End User] -->|HTTP Request| Ingress[NGINX Ingress Controller];
+    User([🌐 End User]) -->|HTTP Request| Ingress{{NGINX Ingress Controller}};
+
     Ingress -->|80% Traffic| SVC1[Service V1 - Stable];
     Ingress -->|20% Traffic| SVC2[Service V2 - Canary];
-    SVC1 --> Pods1[V1 Pods 🟢];
-    SVC2 --> Pods2[V2 Pods 🔵];
-    Monitoring -.->|Scrape Traffic Metrics| Ingress;
+
+    SVC1 --> Pods1[(🟢 V1 Pods)];
+    SVC2 --> Pods2[(🔵 V2 Pods)];
+
+    subgraph Observability [📊 Observability Stack]
+        Prometheus[(Prometheus)]
+        Grafana[Grafana Dashboards]
+        Prometheus -->|Data Source| Grafana
+    end
+
+    Prometheus -.->|Scrapes Metrics| Ingress;
+    Prometheus -.->|Scrapes Metrics| Pods1;
+    Prometheus -.->|Scrapes Metrics| Pods2;
+
+    Terraform[Terraform IaC] -->|Provisions via Helm| Observability;
+    Terraform -->|Provisions EKS| Ingress;
 ```
 
 ## 🛠 Tech Stack
