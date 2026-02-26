@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: meu-site
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: meu-site
+        version: v1
+    spec:
+      containers:
+      - name: web
+        image: hashicorp/http-echo:1.0
+        args:
+        - "-text=🟢 Welcome to Version 1 (Stable - Production)"
+        - "-listen=:8080"
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-v1
+spec:
+  selector:
+    app: meu-site
+    version: v1
+  ports:
+  - port: 80
+    targetPort: 8080

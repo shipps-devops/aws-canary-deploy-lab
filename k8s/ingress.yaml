@@ -1,0 +1,44 @@
+# A Porta da Frente Principal (Aponta 100% para a V1 por padrão)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: main-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: mywebsite.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-v1 # Aponta para a versão VERDE
+            port:
+              number: 80
+
+---
+# A Regra do Canary (A Mágica da Divisão de Tráfego)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-canary
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    
+    # É AQUI QUE O SENIOR BRILHA! As regras do NGINX:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "20"
+spec:
+  rules:
+  - host: meusite.com.br
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-v2 # Aponta para a versão AZUL
+            port:
+              number: 80
