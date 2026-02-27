@@ -32,7 +32,7 @@ metadata:
     nginx.ingress.kubernetes.io/canary-weight: "20"
 spec:
   rules:
-  - host: meusite.com.br
+  - host: mywebsite.com
     http:
       paths:
       - path: /
