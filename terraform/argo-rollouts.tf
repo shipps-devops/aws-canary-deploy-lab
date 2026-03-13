@@ -1,0 +1,18 @@
+resource "kubernetes_namespace" "argo_rollouts" {
+  metadata {
+    name = "argo-rollouts"
+  }
+}
+
+resource "helm_release" "argo_rollouts" {
+  name       = "argo-rollouts"
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argo-rollouts"
+  namespace  = kubernetes_namespace.argo_rollouts.metadata.name
+
+  # Adiciona a dependência para garantir que o cluster EKS exista primeiro
+  depends_on = [
+    module.eks,
+    kubernetes_namespace.argo_rollouts
+  ]
+}

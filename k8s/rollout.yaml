@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: app-rollout
+spec:
+  replicas: 5
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: app-container
+        image: nginx:1.19.0 # Current Stable Version
+        ports:
+        - containerPort: 80
+  strategy:
+    canary:
+      stableService: app-stable-svc
+      canaryService: app-canary-svc
+      trafficRouting:
+        nginx:
+          stableIngress: app-ingress
+      steps:
+      - setWeight: 20
+      - pause: {} # Pauses indefinitely for manual validation by SRE
+      - setWeight: 80
+      - pause: {duration: 10m} # Automated observation period
+      - setWeight: 100
