@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: app-container
-        image: shipps/meu-site-canary:v1
+        image: shipps/meu-site-canary:6f205644d308c73c164225a3bba6ab8264227f6b
         ports:
         - containerPort: 80
   strategy:
