@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: app-container
-        image: nginx:1.19.0 # Current Stable Version
+        image: shipps/meu-site-canary:v1
         ports:
         - containerPort: 80
   strategy:
