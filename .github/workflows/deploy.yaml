@@ -1,0 +1,49 @@
+name: Build and Deploy Canary
+
+# BLOCO 1: O Gatilho (Quando o robô acorda?)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+
+# BLOCO 2: O Computador (Onde o robô trabalha?)
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: Clonar o repositório para o robô poder ler os arquivos
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      # Passo 2: O 'docker login' (Usando variáveis secretas de segurança)
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Passo 3: O 'docker build' e 'docker push' simultâneos
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          push: true
+          tags: shipps/meu-site-canary:${{ github.sha }}
+
+          # Passo 4: O "Escrivão" - Atualiza o arquivo Kubernetes com o novo Hash
+      - name: Atualizar Imagem no Manifest (GitOps)
+        run: |
+          # 1. Usa o comando 'sed' (localizar e substituir) para trocar a tag da imagem
+          sed -i "s|image: shipps/meu-site-canary:.*|image: shipps/meu-site-canary:${{ github.sha }}|g" k8s/rollout.yaml
+          
+          # 2. Configura a identidade do robô no Git
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          # 3. Faz o commit e joga a alteração de volta para o seu repositório
+          git add k8s/rollout.yaml
+          git commit -m "Deploy automático: Atualizando imagem para a tag ${{ github.sha }}"
+          git push
